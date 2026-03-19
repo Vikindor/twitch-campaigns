@@ -21,7 +21,8 @@ jobs:
           TWITCH_DROPS_API_URL: ${{ secrets.TWITCH_DROPS_API_URL }}
           TWITCH_REWARDS_API_URL: ${{ secrets.TWITCH_REWARDS_API_URL }}
           CACHE_BACKEND: gist
-          GIST_ID: ${{ secrets.GIST_ID }}
+          DROPS_GIST_ID: ${{ secrets.DROPS_GIST_ID }}
+          REWARDS_GIST_ID: ${{ secrets.REWARDS_GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
           DROPS_GIST_FILENAME: twitch-drops-cache.json
           REWARDS_GIST_FILENAME: twitch-rewards-cache.json
