@@ -20,7 +20,7 @@ public final class RewardTelegramFormatter {
         message.append("<b>").append(escapeHtml(safe(campaign.gameDisplayName()))).append("</b>\n");
         message.append(escapeHtml(safe(campaign.brand()))).append("\n\n");
         message.append(formatDateRange(campaign.startsAt(), campaign.endsAt(), campaign.imageUrl())).append("\n\n");
-        message.append(escapeHtml(safe(campaign.name()))).append(" | Rewards:\n");
+        message.append("Rewards | ").append(escapeHtml(safe(campaign.name()))).append(":\n");
         message.append(formatRewards(campaign.requirementLabel(), campaign.rewards()));
 
         String detailsUrl = firstNonBlank(campaign.externalUrl(), campaign.aboutUrl());
