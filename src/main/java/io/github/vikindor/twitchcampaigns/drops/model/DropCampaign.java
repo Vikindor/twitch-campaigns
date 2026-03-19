@@ -1,4 +1,4 @@
-package io.github.vikindor.twitchcampaigns.model;
+package io.github.vikindor.twitchcampaigns.drops.model;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,6 +15,6 @@ public record DropCampaign(
         String gameBoxArtUrl,
         String detailsUrl,
         String imageUrl,
-        List<CampaignReward> rewards
+        List<DropBenefit> rewards
 ) {
 }
