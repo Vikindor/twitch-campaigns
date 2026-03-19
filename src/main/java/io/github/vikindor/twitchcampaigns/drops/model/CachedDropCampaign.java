@@ -1,12 +1,9 @@
-package io.github.vikindor.twitchcampaigns.cache;
-
-import io.github.vikindor.twitchcampaigns.model.CampaignReward;
-import io.github.vikindor.twitchcampaigns.model.DropCampaign;
+package io.github.vikindor.twitchcampaigns.drops.model;
 
 import java.time.Instant;
 import java.util.List;
 
-public record CachedCampaign(
+public record CachedDropCampaign(
         String id,
         String gameId,
         String gameDisplayName,
@@ -18,12 +15,11 @@ public record CachedCampaign(
         String gameBoxArtUrl,
         String detailsUrl,
         String imageUrl,
-        List<CampaignReward> rewards,
+        List<DropBenefit> rewards,
         Instant firstSeenAt
 ) {
-
-    public static CachedCampaign from(DropCampaign campaign, Instant firstSeenAt) {
-        return new CachedCampaign(
+    public static CachedDropCampaign from(DropCampaign campaign, Instant firstSeenAt) {
+        return new CachedDropCampaign(
                 campaign.id(),
                 campaign.gameId(),
                 campaign.gameDisplayName(),
