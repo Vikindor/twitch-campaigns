@@ -1,9 +1,9 @@
 name: prod run
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '37 * * * *'
+    - cron: '36 * * * *'
+  workflow_dispatch:
 
 jobs:
   run:
