@@ -11,7 +11,8 @@ public record AppConfig(
         CacheBackend cacheBackend,
         Path dropsLocalCachePath,
         Path rewardsLocalCachePath,
-        String gistId,
+        String dropsGistId,
+        String rewardsGistId,
         String dropsGistFilename,
         String rewardsGistFilename,
         String gistToken,
@@ -25,7 +26,8 @@ public record AppConfig(
         var backend = CacheBackend.from(env.getOrDefault("CACHE_BACKEND", "file"));
         var dropsLocalCachePath = Paths.get(env.getOrDefault("DROPS_LOCAL_CACHE_PATH", ".cache/twitch-drops-cache.json"));
         var rewardsLocalCachePath = Paths.get(env.getOrDefault("REWARDS_LOCAL_CACHE_PATH", ".cache/twitch-rewards-cache.json"));
-        var gistId = trimToNull(env.get("GIST_ID"));
+        var dropsGistId = trimToNull(env.get("DROPS_GIST_ID"));
+        var rewardsGistId = trimToNull(env.get("REWARDS_GIST_ID"));
         var dropsGistFilename = env.getOrDefault("DROPS_GIST_FILENAME", "twitch-drops-cache.json");
         var rewardsGistFilename = env.getOrDefault("REWARDS_GIST_FILENAME", "twitch-rewards-cache.json");
         var gistToken = firstNonBlank(env.get("GIST_TOKEN"), env.get("GITHUB_TOKEN"));
@@ -41,7 +43,8 @@ public record AppConfig(
                 backend,
                 dropsLocalCachePath,
                 rewardsLocalCachePath,
-                gistId,
+                dropsGistId,
+                rewardsGistId,
                 dropsGistFilename,
                 rewardsGistFilename,
                 trimToNull(gistToken),
@@ -61,8 +64,12 @@ public record AppConfig(
         }
 
         if (cacheBackend == CacheBackend.GIST) {
-            if (gistId == null || gistId.isBlank()) {
-                throw new IllegalStateException("GIST_ID is required when CACHE_BACKEND=gist");
+            if (dropsGistId == null || dropsGistId.isBlank()) {
+                throw new IllegalStateException("DROPS_GIST_ID is required when CACHE_BACKEND=gist");
+            }
+
+            if (rewardsGistId == null || rewardsGistId.isBlank()) {
+                throw new IllegalStateException("REWARDS_GIST_ID is required when CACHE_BACKEND=gist");
             }
 
             if (gistToken == null || gistToken.isBlank()) {
