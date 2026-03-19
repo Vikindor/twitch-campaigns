@@ -1,4 +1,4 @@
-package io.github.vikindor.twitchcampaigns.cache;
+package io.github.vikindor.twitchcampaigns.state;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,32 +9,39 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
+import java.util.function.Supplier;
 
-public final class GithubGistCampaignCacheStore implements CampaignCacheStore {
+public final class GistStateStore<T> implements StateStore<T> {
     private static final URI GITHUB_API_BASE_URI = URI.create("https://api.github.com");
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final String gistId;
     private final String gistFilename;
-    private final String githubToken;
+    private final String gistToken;
+    private final Class<T> type;
+    private final Supplier<T> emptyStateFactory;
 
-    public GithubGistCampaignCacheStore(
+    public GistStateStore(
             HttpClient httpClient,
             ObjectMapper objectMapper,
             String gistId,
             String gistFilename,
-            String githubToken
+            String gistToken,
+            Class<T> type,
+            Supplier<T> emptyStateFactory
     ) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.gistId = gistId;
         this.gistFilename = gistFilename;
-        this.githubToken = githubToken;
+        this.gistToken = gistToken;
+        this.type = type;
+        this.emptyStateFactory = emptyStateFactory;
     }
 
     @Override
-    public CacheState load() throws IOException, InterruptedException {
+    public T load() throws IOException, InterruptedException {
         HttpRequest request = baseRequestBuilder(gistUri()).GET().build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -47,14 +54,14 @@ public final class GithubGistCampaignCacheStore implements CampaignCacheStore {
         JsonNode fileContentNode = root.path("files").path(gistFilename).path("content");
 
         if (fileContentNode.isMissingNode() || fileContentNode.isNull() || fileContentNode.asText().isBlank()) {
-            return CacheState.empty();
+            return emptyStateFactory.get();
         }
 
-        return objectMapper.readValue(fileContentNode.asText(), CacheState.class);
+        return objectMapper.readValue(fileContentNode.asText(), type);
     }
 
     @Override
-    public void save(CacheState state) throws IOException, InterruptedException {
+    public void save(T state) throws IOException, InterruptedException {
         String serializedState = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(state);
         String body = objectMapper.writeValueAsString(
                 Map.of("files", Map.of(gistFilename, Map.of("content", serializedState)))
@@ -72,7 +79,7 @@ public final class GithubGistCampaignCacheStore implements CampaignCacheStore {
     private HttpRequest.Builder baseRequestBuilder(URI uri) {
         return HttpRequest.newBuilder(uri)
                 .header("Accept", "application/vnd.github+json")
-                .header("Authorization", "Bearer " + githubToken)
+                .header("Authorization", "Bearer " + gistToken)
                 .header("X-GitHub-Api-Version", "2022-11-28");
     }
 
