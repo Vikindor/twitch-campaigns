@@ -7,10 +7,13 @@ import java.util.Map;
 
 public record AppConfig(
         URI dropsApiUrl,
+        URI rewardsApiUrl,
         CacheBackend cacheBackend,
-        Path localCachePath,
+        Path dropsLocalCachePath,
+        Path rewardsLocalCachePath,
         String gistId,
-        String gistFilename,
+        String dropsGistFilename,
+        String rewardsGistFilename,
         String gistToken,
         String telegramBotToken,
         String telegramChatId,
@@ -18,10 +21,13 @@ public record AppConfig(
 ) {
     public static AppConfig fromEnv(Map<String, String> env) {
         var apiUrl = toUriOrNull(env.get("TWITCH_DROPS_API_URL"));
+        var rewardsApiUrl = toUriOrNull(env.get("TWITCH_REWARDS_API_URL"));
         var backend = CacheBackend.from(env.getOrDefault("CACHE_BACKEND", "file"));
-        var localCachePath = Paths.get(env.getOrDefault("LOCAL_CACHE_PATH", ".cache/twitch-drops-cache.json"));
+        var dropsLocalCachePath = Paths.get(env.getOrDefault("DROPS_LOCAL_CACHE_PATH", ".cache/twitch-drops-cache.json"));
+        var rewardsLocalCachePath = Paths.get(env.getOrDefault("REWARDS_LOCAL_CACHE_PATH", ".cache/twitch-rewards-cache.json"));
         var gistId = trimToNull(env.get("GIST_ID"));
-        var gistFilename = env.getOrDefault("GIST_FILENAME", "twitch-drops-cache.json");
+        var dropsGistFilename = env.getOrDefault("DROPS_GIST_FILENAME", "twitch-drops-cache.json");
+        var rewardsGistFilename = env.getOrDefault("REWARDS_GIST_FILENAME", "twitch-rewards-cache.json");
         var gistToken = firstNonBlank(env.get("GIST_TOKEN"), env.get("GITHUB_TOKEN"));
         var telegramBotToken = trimToNull(env.get("TELEGRAM_BOT_TOKEN"));
         var telegramChatId = trimToNull(env.get("TELEGRAM_CHAT_ID"));
@@ -31,10 +37,13 @@ public record AppConfig(
 
         return new AppConfig(
                 apiUrl,
+                rewardsApiUrl,
                 backend,
-                localCachePath,
+                dropsLocalCachePath,
+                rewardsLocalCachePath,
                 gistId,
-                gistFilename,
+                dropsGistFilename,
+                rewardsGistFilename,
                 trimToNull(gistToken),
                 telegramBotToken,
                 telegramChatId,
@@ -47,13 +56,17 @@ public record AppConfig(
             throw new IllegalStateException("TWITCH_DROPS_API_URL is required");
         }
 
+        if (rewardsApiUrl == null) {
+            throw new IllegalStateException("TWITCH_REWARDS_API_URL is required");
+        }
+
         if (cacheBackend == CacheBackend.GIST) {
             if (gistId == null || gistId.isBlank()) {
-                throw new IllegalStateException("GITHUB_GIST_ID is required when CACHE_BACKEND=gist");
+                throw new IllegalStateException("GIST_ID is required when CACHE_BACKEND=gist");
             }
 
             if (gistToken == null || gistToken.isBlank()) {
-                throw new IllegalStateException("GITHUB_GIST_TOKEN is required when CACHE_BACKEND=gist");
+                throw new IllegalStateException("GIST_TOKEN is required when CACHE_BACKEND=gist");
             }
         }
 
