@@ -1,9 +1,9 @@
-package io.github.vikindor.twitchcampaigns.client;
+package io.github.vikindor.twitchcampaigns.drops.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.vikindor.twitchcampaigns.model.CampaignReward;
-import io.github.vikindor.twitchcampaigns.model.DropCampaign;
+import io.github.vikindor.twitchcampaigns.drops.model.DropBenefit;
+import io.github.vikindor.twitchcampaigns.drops.model.DropCampaign;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,24 +17,24 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class TwitchDropsApiClient {
+public final class DropCampaignClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final URI dropsApiUrl;
+    private final URI apiUrl;
 
-    public TwitchDropsApiClient(HttpClient httpClient, ObjectMapper objectMapper, URI dropsApiUrl) {
+    public DropCampaignClient(HttpClient httpClient, ObjectMapper objectMapper, URI apiUrl) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.dropsApiUrl = dropsApiUrl;
+        this.apiUrl = apiUrl;
     }
 
     public List<DropCampaign> fetchCampaigns() throws IOException, InterruptedException {
-        if ("file".equalsIgnoreCase(dropsApiUrl.getScheme())) {
-            JsonNode root = objectMapper.readTree(java.nio.file.Path.of(dropsApiUrl).toFile());
+        if ("file".equalsIgnoreCase(apiUrl.getScheme())) {
+            JsonNode root = objectMapper.readTree(java.nio.file.Path.of(apiUrl).toFile());
             return extractCampaigns(root);
         }
 
-        HttpRequest request = HttpRequest.newBuilder(dropsApiUrl)
+        HttpRequest request = HttpRequest.newBuilder(apiUrl)
                 .header("Accept", "application/json")
                 .GET()
                 .build();
@@ -44,8 +44,7 @@ public final class TwitchDropsApiClient {
             throw new IOException("Failed to fetch drops API. HTTP " + response.statusCode());
         }
 
-        JsonNode root = objectMapper.readTree(response.body());
-        return extractCampaigns(root);
+        return extractCampaigns(objectMapper.readTree(response.body()));
     }
 
     public List<DropCampaign> extractCampaigns(JsonNode root) {
@@ -89,8 +88,8 @@ public final class TwitchDropsApiClient {
         return campaigns;
     }
 
-    private static List<CampaignReward> extractRewards(JsonNode rewardNode) {
-        Map<String, CampaignReward> rewards = new LinkedHashMap<>();
+    private static List<DropBenefit> extractRewards(JsonNode rewardNode) {
+        Map<String, DropBenefit> rewards = new LinkedHashMap<>();
 
         for (JsonNode timeBasedDropNode : rewardNode.path("timeBasedDrops")) {
             String requirementLabel = toRequirementLabel(timeBasedDropNode.path("requiredMinutesWatched").asInt(0));
@@ -99,19 +98,19 @@ public final class TwitchDropsApiClient {
                 String benefitName = text(benefitEdgeNode.path("benefit"), "name");
                 if (benefitName != null) {
                     String key = requirementLabel + "|" + benefitName;
-                    rewards.putIfAbsent(key, new CampaignReward(requirementLabel, benefitName));
+                    rewards.putIfAbsent(key, new DropBenefit(requirementLabel, benefitName));
                 }
             }
 
             String dropName = text(timeBasedDropNode, "name");
             if (dropName != null && !dropName.isBlank() && timeBasedDropNode.path("benefitEdges").isEmpty()) {
                 String key = requirementLabel + "|" + dropName;
-                rewards.putIfAbsent(key, new CampaignReward(requirementLabel, dropName));
+                rewards.putIfAbsent(key, new DropBenefit(requirementLabel, dropName));
             }
         }
 
         if (rewards.isEmpty()) {
-            return List.of(new CampaignReward("Reward", requiredText(rewardNode, "name")));
+            return List.of(new DropBenefit("Reward", requiredText(rewardNode, "name")));
         }
 
         return List.copyOf(rewards.values());
