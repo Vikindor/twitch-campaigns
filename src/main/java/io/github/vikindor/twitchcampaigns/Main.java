@@ -140,7 +140,7 @@ public final class Main {
             case GIST -> new GistStateStore<>(
                     httpClient,
                     objectMapper,
-                    config.gistId(),
+                    config.dropsGistId(),
                     config.dropsGistFilename(),
                     config.gistToken(),
                     DropCacheState.class,
@@ -159,7 +159,7 @@ public final class Main {
             case GIST -> new GistStateStore<>(
                     httpClient,
                     objectMapper,
-                    config.gistId(),
+                    config.rewardsGistId(),
                     config.rewardsGistFilename(),
                     config.gistToken(),
                     RewardCacheState.class,
@@ -175,10 +175,12 @@ public final class Main {
                     + " ; "
                     + config.rewardsLocalCachePath().toAbsolutePath();
             case GIST -> "gist -> "
-                    + config.gistId()
+                    + config.dropsGistId()
                     + " / "
                     + config.dropsGistFilename()
                     + " ; "
+                    + config.rewardsGistId()
+                    + " / "
                     + config.rewardsGistFilename();
         };
     }
