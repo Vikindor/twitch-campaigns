@@ -1,4 +1,4 @@
-package io.github.vikindor.twitchcampaigns.cache;
+package io.github.vikindor.twitchcampaigns.drops.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
@@ -6,17 +6,16 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public record CacheState(
+public record DropCacheState(
         Instant updatedAt,
-        Map<String, CachedCampaign> campaignsById
+        Map<String, CachedDropCampaign> campaignsById
 ) {
-
     @JsonCreator
-    public CacheState {
+    public DropCacheState {
         campaignsById = campaignsById == null ? new LinkedHashMap<>() : new LinkedHashMap<>(campaignsById);
     }
 
-    public static CacheState empty() {
-        return new CacheState(null, Map.of());
+    public static DropCacheState empty() {
+        return new DropCacheState(null, Map.of());
     }
 }
