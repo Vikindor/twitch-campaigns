@@ -20,13 +20,8 @@ public final class RewardTelegramFormatter {
         message.append("<b>").append(escapeHtml(safe(campaign.gameDisplayName()))).append("</b>\n");
         message.append(escapeHtml(safe(campaign.brand()))).append("\n\n");
         message.append(formatDateRange(campaign.startsAt(), campaign.endsAt(), campaign.imageUrl())).append("\n\n");
-        message.append("Rewards | ").append(escapeHtml(safe(campaign.name()))).append(":\n");
+        message.append("Rewards | ").append(formatCampaignName(campaign.name(), firstNonBlank(campaign.externalUrl(), campaign.aboutUrl()))).append(":\n");
         message.append(formatRewards(campaign.requirementLabel(), campaign.rewards()));
-
-        String detailsUrl = firstNonBlank(campaign.externalUrl(), campaign.aboutUrl());
-        if (detailsUrl != null) {
-            message.append("\n\nDetails: ").append(escapeHtml(detailsUrl));
-        }
 
         return message.toString();
     }
@@ -54,6 +49,15 @@ public final class RewardTelegramFormatter {
 
     private static String formatInstant(java.time.Instant value) {
         return value == null ? "-" : DATE_TIME_FORMATTER.format(value);
+    }
+
+    private static String formatCampaignName(String campaignName, String detailsUrl) {
+        String safeName = escapeHtml(safe(campaignName));
+        if (detailsUrl == null || detailsUrl.isBlank()) {
+            return safeName;
+        }
+
+        return "<a href=\"" + escapeHtmlAttribute(detailsUrl) + "\">" + safeName + "</a>";
     }
 
     private static String safe(String value) {
