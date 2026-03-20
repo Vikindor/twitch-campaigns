@@ -20,12 +20,8 @@ public final class DropTelegramFormatter {
         message.append("<b>").append(escapeHtml(safe(campaign.gameDisplayName()))).append("</b>\n");
         message.append(escapeHtml(safe(campaign.ownerName()))).append("\n\n");
         message.append(formatDateRange(campaign.startAt(), campaign.endAt(), campaign.gameBoxArtUrl())).append("\n\n");
-        message.append("Drops | ").append(escapeHtml(safe(campaign.name()))).append(":\n");
+        message.append("Drops | ").append(formatCampaignName(campaign.name(), campaign.detailsUrl())).append(":\n");
         message.append(formatRewards(campaign.rewards(), campaign.name()));
-
-        if (campaign.detailsUrl() != null && !campaign.detailsUrl().isBlank()) {
-            message.append("\n\nDetails: ").append(escapeHtml(campaign.detailsUrl()));
-        }
 
         return message.toString();
     }
@@ -53,6 +49,15 @@ public final class DropTelegramFormatter {
 
     private static String formatInstant(java.time.Instant value) {
         return value == null ? "-" : DATE_TIME_FORMATTER.format(value);
+    }
+
+    private static String formatCampaignName(String campaignName, String detailsUrl) {
+        String safeName = escapeHtml(safe(campaignName));
+        if (detailsUrl == null || detailsUrl.isBlank()) {
+            return safeName;
+        }
+
+        return "<a href=\"" + escapeHtmlAttribute(detailsUrl) + "\">" + safeName + "</a>";
     }
 
     private static String safe(String value) {
