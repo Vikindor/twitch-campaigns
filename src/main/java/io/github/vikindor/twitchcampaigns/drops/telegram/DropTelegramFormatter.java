@@ -18,7 +18,6 @@ public final class DropTelegramFormatter {
     public static String formatCampaign(DropCampaign campaign) {
         StringBuilder message = new StringBuilder();
         message.append("<b>").append(escapeHtml(safe(campaign.gameDisplayName()))).append("</b>\n");
-        message.append(escapeHtml(safe(campaign.ownerName()))).append("\n\n");
         message.append(formatDateRange(campaign.startAt(), campaign.endAt(), campaign.gameBoxArtUrl())).append("\n\n");
         message.append("Drops | ").append(formatCampaignName(campaign.name(), campaign.detailsUrl())).append(":\n");
         message.append(formatRewards(campaign.rewards(), campaign.name()));
