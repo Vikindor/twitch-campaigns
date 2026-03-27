@@ -103,7 +103,7 @@ public final class DropCampaignClient {
             }
 
             String dropName = text(timeBasedDropNode, "name");
-            if (dropName != null && !dropName.isBlank() && timeBasedDropNode.path("benefitEdges").isEmpty()) {
+            if (dropName != null && timeBasedDropNode.path("benefitEdges").isEmpty()) {
                 String key = requirementLabel + "|" + dropName;
                 rewards.putIfAbsent(key, new DropBenefit(requirementLabel, dropName));
             }
@@ -123,7 +123,7 @@ public final class DropCampaignClient {
 
         if (requiredMinutesWatched % 60 == 0) {
             int hours = requiredMinutesWatched / 60;
-            return hours == 1 ? "Watch 1h" : "Watch " + hours + "h";
+            return "Watch " + hours + "h";
         }
 
         return "Watch " + requiredMinutesWatched + "m";
