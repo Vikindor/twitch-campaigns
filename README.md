@@ -2,8 +2,8 @@
 Twitch Campaigns
 </h1>
 
-GitHub Actions app that tracks **Twitch Drops** and **reward campaigns** and posts newly detected entries to **Telegram**.  
-It periodically checks external campaign feeds, keeps lightweight cache state, and sends compact Telegram updates when new drops or rewards appear.
+GitHub Actions app that tracks **Twitch drops** and **rewards campaigns** and posts newly detected entries to **Telegram**.  
+It periodically checks external campaign feeds, keeps lightweight cache state, and sends compact Telegram updates when new items appear.
 
 It is a small personal automation project for monitoring Twitch promo activity without manually checking campaign pages.
 
