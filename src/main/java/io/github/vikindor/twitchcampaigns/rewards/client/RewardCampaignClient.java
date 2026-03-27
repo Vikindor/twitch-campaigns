@@ -107,9 +107,9 @@ public final class RewardCampaignClient {
         if (minuteWatchedGoal > 0) {
             if (minuteWatchedGoal % 60 == 0) {
                 int hours = minuteWatchedGoal / 60;
-                watchLabel = "Watch " + hours + "h";
+                watchLabel = hours + "h";
             } else {
-                watchLabel = "Watch " + minuteWatchedGoal + "m";
+                watchLabel = minuteWatchedGoal + "m";
             }
         }
 
