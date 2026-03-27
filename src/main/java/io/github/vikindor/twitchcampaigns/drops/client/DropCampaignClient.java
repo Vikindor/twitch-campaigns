@@ -123,10 +123,10 @@ public final class DropCampaignClient {
 
         if (requiredMinutesWatched % 60 == 0) {
             int hours = requiredMinutesWatched / 60;
-            return "Watch " + hours + "h";
+            return hours + "h";
         }
 
-        return "Watch " + requiredMinutesWatched + "m";
+        return requiredMinutesWatched + "m";
     }
 
     private static String requiredText(JsonNode node, String fieldName) {
