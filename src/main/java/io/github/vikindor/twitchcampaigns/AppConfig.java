@@ -47,7 +47,7 @@ public record AppConfig(
                 rewardsGistId,
                 dropsGistFilename,
                 rewardsGistFilename,
-                trimToNull(gistToken),
+                gistToken,
                 telegramBotToken,
                 telegramChatId,
                 telegramDebugSendLatestCampaign
