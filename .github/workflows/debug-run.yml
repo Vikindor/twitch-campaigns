@@ -28,5 +28,5 @@ jobs:
           REWARDS_GIST_FILENAME: twitch-rewards-cache.json
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_DEBUG_SEND_LATEST_CAMPAIGN: "true"
+          TELEGRAM_DEBUG_SEND_LATEST_CAMPAIGN: "false"
         run: ./gradlew run
