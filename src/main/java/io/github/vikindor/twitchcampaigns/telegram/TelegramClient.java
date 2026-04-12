@@ -1,6 +1,7 @@
 package io.github.vikindor.twitchcampaigns.telegram;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,9 +35,28 @@ public final class TelegramClient {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 429) {
+            throw toRateLimitException(response.body());
+        }
+
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IOException("Telegram sendMessage failed. HTTP " + response.statusCode() + ": " + response.body());
         }
+    }
+
+    private TelegramRateLimitException toRateLimitException(String responseBody) {
+        int retryAfterSeconds = 0;
+
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            retryAfterSeconds = root.path("parameters").path("retry_after").asInt(0);
+        } catch (IOException ignored) {
+        }
+
+        return new TelegramRateLimitException(
+                "Telegram sendMessage failed. HTTP 429: " + responseBody,
+                retryAfterSeconds
+        );
     }
 
     private URI apiUri(String method) {
