@@ -16,9 +16,10 @@ public record CachedDropCampaign(
         String detailsUrl,
         String imageUrl,
         List<DropBenefit> rewards,
-        Instant firstSeenAt
+        Instant firstSeenAt,
+        Instant notifiedAt
 ) {
-    public static CachedDropCampaign from(DropCampaign campaign, Instant firstSeenAt) {
+    public static CachedDropCampaign from(DropCampaign campaign, Instant firstSeenAt, Instant notifiedAt) {
         return new CachedDropCampaign(
                 campaign.id(),
                 campaign.gameId(),
@@ -32,7 +33,8 @@ public record CachedDropCampaign(
                 campaign.detailsUrl(),
                 campaign.imageUrl(),
                 campaign.rewards(),
-                firstSeenAt
+                firstSeenAt,
+                notifiedAt
         );
     }
 }
