@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class Main {
-    private record SendOutcome<T>(T state, boolean rateLimited) {
+    private record SendOutcome<T>(T state, boolean rateLimited, int sentCount) {
     }
 
     private Main() {
@@ -66,6 +66,8 @@ public final class Main {
         List<RewardCampaign> pendingRewardCampaigns = findPendingRewardCampaigns(rewardCampaigns, nextRewardState);
 
         boolean telegramRateLimited = false;
+        int sentDropNotifications = 0;
+        int sentRewardNotifications = 0;
 
         if (dropBootstrapRun) {
             System.out.println("Drop bootstrap run detected: cache is empty, skipping Telegram posts for new drops.");
@@ -79,6 +81,7 @@ public final class Main {
             );
             nextDropState = dropSendOutcome.state();
             telegramRateLimited = dropSendOutcome.rateLimited();
+            sentDropNotifications = dropSendOutcome.sentCount();
         }
 
         if (rewardBootstrapRun) {
@@ -95,6 +98,7 @@ public final class Main {
             );
             nextRewardState = rewardSendOutcome.state();
             telegramRateLimited = rewardSendOutcome.rateLimited();
+            sentRewardNotifications = rewardSendOutcome.sentCount();
         }
 
         dropStateStore.save(nextDropState);
@@ -108,6 +112,12 @@ public final class Main {
         }
 
         System.out.printf("Fetched %d drops, detected %d new.%n", dropCampaigns.size(), newDropCampaigns.size());
+        System.out.printf(
+                "Drop notifications: new in this fetch %d, sent %d, pending %d%n",
+                newDropCampaigns.size(),
+                sentDropNotifications,
+                findPendingDropCampaigns(dropCampaigns, nextDropState).size()
+        );
         for (DropCampaign campaign : newDropCampaigns) {
             System.out.printf(
                     "[NEW DROP] %s | %s | %s | %s%n",
@@ -119,6 +129,12 @@ public final class Main {
         }
 
         System.out.printf("Fetched %d rewards, detected %d new.%n", rewardCampaigns.size(), newRewardCampaigns.size());
+        System.out.printf(
+                "Reward notifications: new in this fetch %d, sent %d, pending %d%n",
+                newRewardCampaigns.size(),
+                sentRewardNotifications,
+                findPendingRewardCampaigns(rewardCampaigns, nextRewardState).size()
+        );
         for (RewardCampaign campaign : newRewardCampaigns) {
             System.out.printf(
                     "[NEW REWARD] %s | %s | %s | %s%n",
@@ -138,26 +154,28 @@ public final class Main {
             Clock clock
     ) throws Exception {
         if (pendingCampaigns.isEmpty()) {
-            return new SendOutcome<>(state, false);
+            return new SendOutcome<>(state, false, 0);
         }
 
         DropCacheState currentState = state;
+        int sentCount = 0;
 
         for (DropCampaign campaign : pendingCampaigns) {
             try {
                 telegramClient.sendMessage(telegramChatId, DropTelegramFormatter.formatCampaign(campaign));
                 currentState = markDropCampaignAsNotified(currentState, campaign.id(), clock.instant());
+                sentCount++;
                 System.out.printf("Sent Telegram message for pending drop: %s%n", campaign.id());
             } catch (TelegramRateLimitException exception) {
                 System.out.printf(
                         "Telegram rate limit hit while sending drops. retry_after=%d. Saving progress and ending run successfully.%n",
                         exception.retryAfterSeconds()
                 );
-                return new SendOutcome<>(currentState, true);
+                return new SendOutcome<>(currentState, true, sentCount);
             }
         }
 
-        return new SendOutcome<>(currentState, false);
+        return new SendOutcome<>(currentState, false, sentCount);
     }
 
     private static SendOutcome<RewardCacheState> sendPendingRewardCampaignsToTelegram(
@@ -168,26 +186,28 @@ public final class Main {
             Clock clock
     ) throws Exception {
         if (pendingCampaigns.isEmpty()) {
-            return new SendOutcome<>(state, false);
+            return new SendOutcome<>(state, false, 0);
         }
 
         RewardCacheState currentState = state;
+        int sentCount = 0;
 
         for (RewardCampaign campaign : pendingCampaigns) {
             try {
                 telegramClient.sendMessage(telegramChatId, RewardTelegramFormatter.formatCampaign(campaign));
                 currentState = markRewardCampaignAsNotified(currentState, campaign.id(), clock.instant());
+                sentCount++;
                 System.out.printf("Sent Telegram message for pending reward: %s%n", campaign.id());
             } catch (TelegramRateLimitException exception) {
                 System.out.printf(
                         "Telegram rate limit hit while sending rewards. retry_after=%d. Saving progress and ending run successfully.%n",
                         exception.retryAfterSeconds()
                 );
-                return new SendOutcome<>(currentState, true);
+                return new SendOutcome<>(currentState, true, sentCount);
             }
         }
 
-        return new SendOutcome<>(currentState, false);
+        return new SendOutcome<>(currentState, false, sentCount);
     }
 
     private static StateStore<DropCacheState> createDropStateStore(
