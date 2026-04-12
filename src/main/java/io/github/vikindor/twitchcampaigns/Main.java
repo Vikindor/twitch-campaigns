@@ -311,10 +311,10 @@ public final class Main {
 
     private static DropCacheState mergeDropState(DropCacheState previousState, List<DropCampaign> currentCampaigns, Clock clock) {
         Instant now = clock.instant();
-        Map<String, CachedDropCampaign> merged = new LinkedHashMap<>(previousState.campaignsById());
+        Map<String, CachedDropCampaign> merged = new LinkedHashMap<>();
 
         for (DropCampaign campaign : currentCampaigns) {
-            CachedDropCampaign existing = merged.get(campaign.id());
+            CachedDropCampaign existing = previousState.campaignsById().get(campaign.id());
             Instant firstSeenAt = existing == null ? now : existing.firstSeenAt();
             Instant notifiedAt = existing == null ? null : existing.notifiedAt();
             merged.put(campaign.id(), CachedDropCampaign.from(campaign, firstSeenAt, notifiedAt));
@@ -325,10 +325,10 @@ public final class Main {
 
     private static RewardCacheState mergeRewardState(RewardCacheState previousState, List<RewardCampaign> currentCampaigns, Clock clock) {
         Instant now = clock.instant();
-        Map<String, CachedRewardCampaign> merged = new LinkedHashMap<>(previousState.campaignsById());
+        Map<String, CachedRewardCampaign> merged = new LinkedHashMap<>();
 
         for (RewardCampaign campaign : currentCampaigns) {
-            CachedRewardCampaign existing = merged.get(campaign.id());
+            CachedRewardCampaign existing = previousState.campaignsById().get(campaign.id());
             Instant firstSeenAt = existing == null ? now : existing.firstSeenAt();
             Instant notifiedAt = existing == null ? null : existing.notifiedAt();
             merged.put(campaign.id(), CachedRewardCampaign.from(campaign, firstSeenAt, notifiedAt));
