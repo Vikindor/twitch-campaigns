@@ -87,7 +87,7 @@ public final class Main {
         if (rewardBootstrapRun) {
             System.out.println("Reward bootstrap run detected: cache is empty, skipping Telegram posts for new rewards.");
         } else if (telegramRateLimited) {
-            System.out.println("Skipping reward Telegram posts because Telegram rate limit was already hit while sending drops.");
+            System.out.println("[429] Skipping reward Telegram posts because Telegram rate limit was already hit while sending drops.");
         } else {
             SendOutcome<RewardCacheState> rewardSendOutcome = sendPendingRewardCampaignsToTelegram(
                     telegramClient,
@@ -108,7 +108,7 @@ public final class Main {
             debugSendLatestDropCampaign(config, telegramClient, config.telegramChatId(), dropCampaigns);
             debugSendLatestRewardCampaign(config, telegramClient, config.telegramChatId(), rewardCampaigns);
         } else {
-            System.out.println("Skipping debug Telegram messages because Telegram rate limit was hit earlier in the run.");
+            System.out.println("[429] Skipping debug Telegram messages because Telegram rate limit was hit earlier in the run.");
         }
 
         System.out.printf("Fetched %d drops, detected %d new.%n", dropCampaigns.size(), newDropCampaigns.size());
@@ -168,7 +168,7 @@ public final class Main {
                 System.out.printf("Sent Telegram message for pending drop: %s%n", campaign.id());
             } catch (TelegramRateLimitException exception) {
                 System.out.printf(
-                        "Telegram rate limit hit while sending drops. retry_after=%d. Saving progress and ending run successfully.%n",
+                        "[429] Telegram rate limit hit while sending drops. retry_after=%d. Saving progress and ending run successfully.%n",
                         exception.retryAfterSeconds()
                 );
                 return new SendOutcome<>(currentState, true, sentCount);
@@ -200,7 +200,7 @@ public final class Main {
                 System.out.printf("Sent Telegram message for pending reward: %s%n", campaign.id());
             } catch (TelegramRateLimitException exception) {
                 System.out.printf(
-                        "Telegram rate limit hit while sending rewards. retry_after=%d. Saving progress and ending run successfully.%n",
+                        "[429] Telegram rate limit hit while sending rewards. retry_after=%d. Saving progress and ending run successfully.%n",
                         exception.retryAfterSeconds()
                 );
                 return new SendOutcome<>(currentState, true, sentCount);
