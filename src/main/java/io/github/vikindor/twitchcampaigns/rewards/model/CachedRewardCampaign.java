@@ -18,9 +18,10 @@ public record CachedRewardCampaign(
         String aboutUrl,
         String requirementLabel,
         List<RewardItem> rewards,
-        Instant firstSeenAt
+        Instant firstSeenAt,
+        Instant notifiedAt
 ) {
-    public static CachedRewardCampaign from(RewardCampaign campaign, Instant firstSeenAt) {
+    public static CachedRewardCampaign from(RewardCampaign campaign, Instant firstSeenAt, Instant notifiedAt) {
         return new CachedRewardCampaign(
                 campaign.id(),
                 campaign.gameId(),
@@ -36,7 +37,8 @@ public record CachedRewardCampaign(
                 campaign.aboutUrl(),
                 campaign.requirementLabel(),
                 campaign.rewards(),
-                firstSeenAt
+                firstSeenAt,
+                notifiedAt
         );
     }
 }
