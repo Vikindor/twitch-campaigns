@@ -59,6 +59,7 @@ public final class Main {
         DropCacheState nextDropState = mergeDropState(previousDropState, dropCampaigns, clock, config.campaignCacheRetention());
         List<DropCampaign> newDropCampaigns = findNewDropCampaigns(dropCampaigns, previousDropState);
         List<DropCampaign> pendingDropCampaigns = findPendingDropCampaigns(dropCampaigns, nextDropState);
+        int prunedDropCampaigns = countPrunedCampaigns(previousDropState.campaignsById().keySet(), nextDropState.campaignsById().keySet());
 
         List<RewardCampaign> rewardCampaigns = rewardCampaignClient.fetchCampaigns();
         RewardCacheState previousRewardState = rewardStateStore.load();
@@ -66,6 +67,7 @@ public final class Main {
         RewardCacheState nextRewardState = mergeRewardState(previousRewardState, rewardCampaigns, clock, config.campaignCacheRetention());
         List<RewardCampaign> newRewardCampaigns = findNewRewardCampaigns(rewardCampaigns, previousRewardState);
         List<RewardCampaign> pendingRewardCampaigns = findPendingRewardCampaigns(rewardCampaigns, nextRewardState);
+        int prunedRewardCampaigns = countPrunedCampaigns(previousRewardState.campaignsById().keySet(), nextRewardState.campaignsById().keySet());
 
         boolean telegramRateLimited = false;
         int sentDropNotifications = 0;
@@ -120,6 +122,7 @@ public final class Main {
                 sentDropNotifications,
                 findPendingDropCampaigns(dropCampaigns, nextDropState).size()
         );
+        System.out.printf("Drop cache: pruned %d campaigns%n", prunedDropCampaigns);
         for (DropCampaign campaign : newDropCampaigns) {
             System.out.printf(
                     "[NEW DROP] %s | %s | %s | %s%n",
@@ -137,6 +140,7 @@ public final class Main {
                 sentRewardNotifications,
                 findPendingRewardCampaigns(rewardCampaigns, nextRewardState).size()
         );
+        System.out.printf("Reward cache: pruned %d campaigns%n", prunedRewardCampaigns);
         for (RewardCampaign campaign : newRewardCampaigns) {
             System.out.printf(
                     "[NEW REWARD] %s | %s | %s | %s%n",
@@ -457,5 +461,15 @@ public final class Main {
 
     private static boolean isStillRetained(Instant lastSeenAt, Instant cutoff) {
         return lastSeenAt != null && !lastSeenAt.isBefore(cutoff);
+    }
+
+    private static int countPrunedCampaigns(Set<String> previousIds, Set<String> nextIds) {
+        int pruned = 0;
+        for (String previousId : previousIds) {
+            if (!nextIds.contains(previousId)) {
+                pruned++;
+            }
+        }
+        return pruned;
     }
 }
