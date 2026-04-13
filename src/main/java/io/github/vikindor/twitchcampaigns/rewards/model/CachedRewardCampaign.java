@@ -19,9 +19,15 @@ public record CachedRewardCampaign(
         String requirementLabel,
         List<RewardItem> rewards,
         Instant firstSeenAt,
-        Instant notifiedAt
+        Instant notifiedAt,
+        Instant lastSeenAt
 ) {
-    public static CachedRewardCampaign from(RewardCampaign campaign, Instant firstSeenAt, Instant notifiedAt) {
+    public static CachedRewardCampaign from(
+            RewardCampaign campaign,
+            Instant firstSeenAt,
+            Instant notifiedAt,
+            Instant lastSeenAt
+    ) {
         return new CachedRewardCampaign(
                 campaign.id(),
                 campaign.gameId(),
@@ -38,7 +44,8 @@ public record CachedRewardCampaign(
                 campaign.requirementLabel(),
                 campaign.rewards(),
                 firstSeenAt,
-                notifiedAt
+                notifiedAt,
+                lastSeenAt
         );
     }
 }
