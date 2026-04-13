@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class Main {
     private record SendOutcome<T>(T state, boolean rateLimited, int sentCount) {
@@ -50,18 +51,19 @@ public final class Main {
         System.out.printf("Rewards source: %s%n", config.rewardsApiUrl());
         System.out.printf("Cache backend: %s%n", describeCache(config));
         System.out.printf("Telegram debug send latest campaign: %s%n", config.telegramDebugSendLatestCampaign());
+        System.out.printf("Campaign cache retention: %d days%n", config.campaignCacheRetention().toDays());
 
         List<DropCampaign> dropCampaigns = dropCampaignClient.fetchCampaigns();
         DropCacheState previousDropState = dropStateStore.load();
         boolean dropBootstrapRun = previousDropState.campaignsById().isEmpty();
-        DropCacheState nextDropState = mergeDropState(previousDropState, dropCampaigns, clock);
+        DropCacheState nextDropState = mergeDropState(previousDropState, dropCampaigns, clock, config.campaignCacheRetention());
         List<DropCampaign> newDropCampaigns = findNewDropCampaigns(dropCampaigns, previousDropState);
         List<DropCampaign> pendingDropCampaigns = findPendingDropCampaigns(dropCampaigns, nextDropState);
 
         List<RewardCampaign> rewardCampaigns = rewardCampaignClient.fetchCampaigns();
         RewardCacheState previousRewardState = rewardStateStore.load();
         boolean rewardBootstrapRun = previousRewardState.campaignsById().isEmpty();
-        RewardCacheState nextRewardState = mergeRewardState(previousRewardState, rewardCampaigns, clock);
+        RewardCacheState nextRewardState = mergeRewardState(previousRewardState, rewardCampaigns, clock, config.campaignCacheRetention());
         List<RewardCampaign> newRewardCampaigns = findNewRewardCampaigns(rewardCampaigns, previousRewardState);
         List<RewardCampaign> pendingRewardCampaigns = findPendingRewardCampaigns(rewardCampaigns, nextRewardState);
 
@@ -329,29 +331,61 @@ public final class Main {
                 .toList();
     }
 
-    private static DropCacheState mergeDropState(DropCacheState previousState, List<DropCampaign> currentCampaigns, Clock clock) {
+    private static DropCacheState mergeDropState(
+            DropCacheState previousState,
+            List<DropCampaign> currentCampaigns,
+            Clock clock,
+            java.time.Duration retention
+    ) {
         Instant now = clock.instant();
+        Instant cutoff = now.minus(retention);
+        Set<String> currentIds = currentCampaigns.stream()
+                .map(DropCampaign::id)
+                .collect(java.util.stream.Collectors.toSet());
         Map<String, CachedDropCampaign> merged = new LinkedHashMap<>();
+
+        for (Map.Entry<String, CachedDropCampaign> entry : previousState.campaignsById().entrySet()) {
+            CachedDropCampaign existing = entry.getValue();
+            if (!currentIds.contains(entry.getKey()) && isStillRetained(existing.lastSeenAt(), cutoff)) {
+                merged.put(entry.getKey(), existing);
+            }
+        }
 
         for (DropCampaign campaign : currentCampaigns) {
             CachedDropCampaign existing = previousState.campaignsById().get(campaign.id());
             Instant firstSeenAt = existing == null ? now : existing.firstSeenAt();
             Instant notifiedAt = existing == null ? null : existing.notifiedAt();
-            merged.put(campaign.id(), CachedDropCampaign.from(campaign, firstSeenAt, notifiedAt));
+            merged.put(campaign.id(), CachedDropCampaign.from(campaign, firstSeenAt, notifiedAt, now));
         }
 
         return new DropCacheState(now, merged);
     }
 
-    private static RewardCacheState mergeRewardState(RewardCacheState previousState, List<RewardCampaign> currentCampaigns, Clock clock) {
+    private static RewardCacheState mergeRewardState(
+            RewardCacheState previousState,
+            List<RewardCampaign> currentCampaigns,
+            Clock clock,
+            java.time.Duration retention
+    ) {
         Instant now = clock.instant();
+        Instant cutoff = now.minus(retention);
+        Set<String> currentIds = currentCampaigns.stream()
+                .map(RewardCampaign::id)
+                .collect(java.util.stream.Collectors.toSet());
         Map<String, CachedRewardCampaign> merged = new LinkedHashMap<>();
+
+        for (Map.Entry<String, CachedRewardCampaign> entry : previousState.campaignsById().entrySet()) {
+            CachedRewardCampaign existing = entry.getValue();
+            if (!currentIds.contains(entry.getKey()) && isStillRetained(existing.lastSeenAt(), cutoff)) {
+                merged.put(entry.getKey(), existing);
+            }
+        }
 
         for (RewardCampaign campaign : currentCampaigns) {
             CachedRewardCampaign existing = previousState.campaignsById().get(campaign.id());
             Instant firstSeenAt = existing == null ? now : existing.firstSeenAt();
             Instant notifiedAt = existing == null ? null : existing.notifiedAt();
-            merged.put(campaign.id(), CachedRewardCampaign.from(campaign, firstSeenAt, notifiedAt));
+            merged.put(campaign.id(), CachedRewardCampaign.from(campaign, firstSeenAt, notifiedAt, now));
         }
 
         return new RewardCacheState(now, merged);
@@ -381,7 +415,8 @@ public final class Main {
                         existing.imageUrl(),
                         existing.rewards(),
                         existing.firstSeenAt(),
-                        notifiedAt
+                        notifiedAt,
+                        existing.lastSeenAt()
                 )
         );
         return new DropCacheState(state.updatedAt(), updatedCampaigns);
@@ -413,9 +448,14 @@ public final class Main {
                         existing.requirementLabel(),
                         existing.rewards(),
                         existing.firstSeenAt(),
-                        notifiedAt
+                        notifiedAt,
+                        existing.lastSeenAt()
                 )
         );
         return new RewardCacheState(state.updatedAt(), updatedCampaigns);
+    }
+
+    private static boolean isStillRetained(Instant lastSeenAt, Instant cutoff) {
+        return lastSeenAt != null && !lastSeenAt.isBefore(cutoff);
     }
 }
