@@ -7,7 +7,7 @@ It periodically checks external campaign feeds, keeps lightweight cache state, a
 
 It is a small personal automation project for monitoring Twitch promo activity without manually checking campaign pages.
 
-This project relies on the excellent [twitch-drops-api](https://github.com/SunkwiBOT/twitch-drops-api) by [SunkwiBOT](https://github.com/SunkwiBOT) and [GregMMA](https://github.com/GregMMA). Kudos to them for making these endpoints available.
+This project relies on the [twitch-drops-api](https://github.com/SunkwiBOT/twitch-drops-api) by [SunkwiBOT](https://github.com/SunkwiBOT) and [GregMMA](https://github.com/GregMMA). Kudos to them for making these endpoints available.
 
 ## 🌐 Telegram
 
