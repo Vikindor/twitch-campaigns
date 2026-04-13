@@ -3,6 +3,7 @@ package io.github.vikindor.twitchcampaigns;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Map;
 
 public record AppConfig(
@@ -18,7 +19,8 @@ public record AppConfig(
         String gistToken,
         String telegramBotToken,
         String telegramChatId,
-        boolean telegramDebugSendLatestCampaign
+        boolean telegramDebugSendLatestCampaign,
+        Duration campaignCacheRetention
 ) {
     public static AppConfig fromEnv(Map<String, String> env) {
         var apiUrl = toUriOrNull(env.get("TWITCH_DROPS_API_URL"));
@@ -36,6 +38,9 @@ public record AppConfig(
         var telegramDebugSendLatestCampaign = Boolean.parseBoolean(
                 env.getOrDefault("TELEGRAM_DEBUG_SEND_LATEST_CAMPAIGN", "true")
         );
+        var campaignCacheRetention = Duration.ofDays(
+                Long.parseLong(env.getOrDefault("CAMPAIGN_CACHE_RETENTION_DAYS", "7"))
+        );
 
         return new AppConfig(
                 apiUrl,
@@ -50,7 +55,8 @@ public record AppConfig(
                 gistToken,
                 telegramBotToken,
                 telegramChatId,
-                telegramDebugSendLatestCampaign
+                telegramDebugSendLatestCampaign,
+                campaignCacheRetention
         );
     }
 
@@ -83,6 +89,10 @@ public record AppConfig(
 
         if (telegramChatId == null || telegramChatId.isBlank()) {
             throw new IllegalStateException("TELEGRAM_CHAT_ID is required");
+        }
+
+        if (campaignCacheRetention.isNegative() || campaignCacheRetention.isZero()) {
+            throw new IllegalStateException("CAMPAIGN_CACHE_RETENTION_DAYS must be greater than 0");
         }
     }
 
