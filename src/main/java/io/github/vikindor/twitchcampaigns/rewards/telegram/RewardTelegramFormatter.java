@@ -20,9 +20,13 @@ public final class RewardTelegramFormatter {
         message.append("<b>").append(escapeHtml(safe(campaign.gameDisplayName()))).append("</b>\n");
         message.append(formatDateRange(campaign.startsAt(), campaign.endsAt(), campaign.imageUrl())).append("\n\n");
         message.append("Rewards | ").append(formatCampaignName(campaign.name(), firstNonBlank(campaign.externalUrl(), campaign.aboutUrl()))).append(":\n");
-        message.append(formatRewards(campaign.requirementLabel(), campaign.rewards()));
+        message.append(formatExpandableBlockquote(formatRewards(campaign.requirementLabel(), campaign.rewards())));
 
         return message.toString();
+    }
+
+    private static String formatExpandableBlockquote(String content) {
+        return "<blockquote expandable>" + content + "</blockquote>";
     }
 
     private static String formatRewards(String requirementLabel, Iterable<RewardItem> rewards) {
