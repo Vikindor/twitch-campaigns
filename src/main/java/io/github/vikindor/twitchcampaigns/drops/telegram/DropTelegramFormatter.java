@@ -20,9 +20,13 @@ public final class DropTelegramFormatter {
         message.append("<b>").append(escapeHtml(safe(campaign.gameDisplayName()))).append("</b>\n");
         message.append(formatDateRange(campaign.startAt(), campaign.endAt(), campaign.gameBoxArtUrl())).append("\n\n");
         message.append("Drops | ").append(formatCampaignName(campaign.name(), campaign.detailsUrl())).append(":\n");
-        message.append(formatRewards(campaign.rewards(), campaign.name()));
+        message.append(formatExpandableBlockquote(formatRewards(campaign.rewards(), campaign.name())));
 
         return message.toString();
+    }
+
+    private static String formatExpandableBlockquote(String content) {
+        return "<blockquote expandable>" + content + "</blockquote>";
     }
 
     private static String formatRewards(Iterable<DropBenefit> rewards, String campaignName) {
