@@ -89,23 +89,24 @@ public final class DropCampaignClient {
     }
 
     private static List<DropBenefit> extractRewards(JsonNode rewardNode) {
-        Map<String, DropBenefit> rewards = new LinkedHashMap<>();
+        Map<String, RewardEntry> rewards = new LinkedHashMap<>();
 
         for (JsonNode timeBasedDropNode : rewardNode.path("timeBasedDrops")) {
-            String requirementLabel = toRequirementLabel(timeBasedDropNode.path("requiredMinutesWatched").asInt(0));
+            int requiredMinutesWatched = timeBasedDropNode.path("requiredMinutesWatched").asInt(0);
+            String requirementLabel = toRequirementLabel(requiredMinutesWatched);
 
             for (JsonNode benefitEdgeNode : timeBasedDropNode.path("benefitEdges")) {
                 String benefitName = text(benefitEdgeNode.path("benefit"), "name");
                 if (benefitName != null) {
                     String key = requirementLabel + "|" + benefitName;
-                    rewards.putIfAbsent(key, new DropBenefit(requirementLabel, benefitName));
+                    rewards.putIfAbsent(key, new RewardEntry(requiredMinutesWatched, new DropBenefit(requirementLabel, benefitName)));
                 }
             }
 
             String dropName = text(timeBasedDropNode, "name");
             if (dropName != null && timeBasedDropNode.path("benefitEdges").isEmpty()) {
                 String key = requirementLabel + "|" + dropName;
-                rewards.putIfAbsent(key, new DropBenefit(requirementLabel, dropName));
+                rewards.putIfAbsent(key, new RewardEntry(requiredMinutesWatched, new DropBenefit(requirementLabel, dropName)));
             }
         }
 
@@ -113,7 +114,13 @@ public final class DropCampaignClient {
             return List.of(new DropBenefit("Reward", requiredText(rewardNode, "name")));
         }
 
-        return List.copyOf(rewards.values());
+        return rewards.values().stream()
+                .sorted(
+                        Comparator.comparingInt(RewardEntry::sortMinutes)
+                                .thenComparing(entry -> entry.benefit().name())
+                )
+                .map(RewardEntry::benefit)
+                .toList();
     }
 
     private static String toRequirementLabel(int requiredMinutesWatched) {
@@ -166,5 +173,11 @@ public final class DropCampaignClient {
                 .trim();
 
         return sanitized.isEmpty() ? null : sanitized;
+    }
+
+    private record RewardEntry(int requiredMinutesWatched, DropBenefit benefit) {
+        private int sortMinutes() {
+            return requiredMinutesWatched <= 0 ? Integer.MAX_VALUE : requiredMinutesWatched;
+        }
     }
 }
