@@ -105,12 +105,7 @@ public final class RewardCampaignClient {
         String subLabel = null;
 
         if (minuteWatchedGoal > 0) {
-            if (minuteWatchedGoal % 60 == 0) {
-                int hours = minuteWatchedGoal / 60;
-                watchLabel = hours + "h";
-            } else {
-                watchLabel = minuteWatchedGoal + "m";
-            }
+            watchLabel = formatWatchDuration(minuteWatchedGoal);
         }
 
         if (subsGoal > 0) {
@@ -169,5 +164,20 @@ public final class RewardCampaignClient {
                 .trim();
 
         return sanitized.isEmpty() ? null : sanitized;
+    }
+
+    private static String formatWatchDuration(int totalMinutes) {
+        if (totalMinutes < 60) {
+            return totalMinutes + "m";
+        }
+
+        int hours = totalMinutes / 60;
+        int minutes = totalMinutes % 60;
+
+        if (minutes == 0) {
+            return hours + "h";
+        }
+
+        return hours + "h " + minutes + "m";
     }
 }
