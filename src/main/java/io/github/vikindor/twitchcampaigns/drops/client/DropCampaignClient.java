@@ -128,12 +128,7 @@ public final class DropCampaignClient {
             return "Sub";
         }
 
-        if (requiredMinutesWatched % 60 == 0) {
-            int hours = requiredMinutesWatched / 60;
-            return hours + "h";
-        }
-
-        return requiredMinutesWatched + "m";
+        return formatWatchDuration(requiredMinutesWatched);
     }
 
     private static String requiredText(JsonNode node, String fieldName) {
@@ -173,6 +168,21 @@ public final class DropCampaignClient {
                 .trim();
 
         return sanitized.isEmpty() ? null : sanitized;
+    }
+
+    private static String formatWatchDuration(int totalMinutes) {
+        if (totalMinutes < 60) {
+            return totalMinutes + "m";
+        }
+
+        int hours = totalMinutes / 60;
+        int minutes = totalMinutes % 60;
+
+        if (minutes == 0) {
+            return hours + "h";
+        }
+
+        return hours + "h " + minutes + "m";
     }
 
     private record RewardEntry(int requiredMinutesWatched, DropBenefit benefit) {
