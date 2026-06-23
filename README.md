@@ -2,6 +2,12 @@
 Twitch Campaigns
 </h1>
 
+<div align="center">
+
+[![pages](https://img.shields.io/badge/Telegram-live-brightgreen)](https://t.me/twitch_campaigns)
+
+</div>
+
 GitHub Actions app that tracks **Twitch drops** and **rewards campaigns** and posts newly detected entries to **Telegram**.  
 It periodically checks external campaign feeds, keeps lightweight cache state, and sends compact Telegram updates when new items appear.
 
