@@ -46,12 +46,13 @@ public final class RewardCampaignClient {
     }
 
     public List<RewardCampaign> extractCampaigns(JsonNode root) {
-        if (!root.isArray()) {
-            throw new IllegalArgumentException("Expected rewards API root to be a JSON array");
+        JsonNode data = root.path("data");
+        if (!root.isObject() || !data.isArray()) {
+            throw new IllegalArgumentException("Expected rewards API v2 response with a data array");
         }
 
         List<RewardCampaign> campaigns = new ArrayList<>();
-        for (JsonNode campaignNode : root) {
+        for (JsonNode campaignNode : data) {
             JsonNode gameNode = campaignNode.path("game");
             JsonNode imageNode = campaignNode.path("image");
             JsonNode unlockRequirementsNode = campaignNode.path("unlockRequirements");

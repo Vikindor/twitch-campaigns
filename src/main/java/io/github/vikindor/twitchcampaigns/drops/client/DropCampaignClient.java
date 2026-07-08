@@ -48,12 +48,13 @@ public final class DropCampaignClient {
     }
 
     public List<DropCampaign> extractCampaigns(JsonNode root) {
-        if (!root.isArray()) {
-            throw new IllegalArgumentException("Expected drops API root to be a JSON array");
+        JsonNode data = root.path("data");
+        if (!root.isObject() || !data.isArray()) {
+            throw new IllegalArgumentException("Expected drops API v2 response with a data array");
         }
 
         List<DropCampaign> campaigns = new ArrayList<>();
-        for (JsonNode groupNode : root) {
+        for (JsonNode groupNode : data) {
             String fallbackGameId = text(groupNode, "gameId");
             String fallbackGameDisplayName = text(groupNode, "gameDisplayName");
             String fallbackGameBoxArtUrl = text(groupNode, "gameBoxArtURL");
