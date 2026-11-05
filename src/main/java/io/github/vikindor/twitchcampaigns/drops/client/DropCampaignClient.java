@@ -48,9 +48,9 @@ public final class DropCampaignClient {
     }
 
     public List<DropCampaign> extractCampaigns(JsonNode root) {
-        JsonNode data = root.path("data");
+        JsonNode data = root.has("games") ? root.path("games") : root.path("data");
         if (!root.isObject() || !data.isArray()) {
-            throw new IllegalArgumentException("Expected drops API v2 response with a data array");
+            throw new IllegalArgumentException("Expected drops API response with a games array");
         }
 
         List<DropCampaign> campaigns = new ArrayList<>();
