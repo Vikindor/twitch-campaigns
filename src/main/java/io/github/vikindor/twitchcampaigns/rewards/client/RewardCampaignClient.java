@@ -46,9 +46,9 @@ public final class RewardCampaignClient {
     }
 
     public List<RewardCampaign> extractCampaigns(JsonNode root) {
-        JsonNode data = root.path("data");
+        JsonNode data = root.has("campaigns") ? root.path("campaigns") : root.path("data");
         if (!root.isObject() || !data.isArray()) {
-            throw new IllegalArgumentException("Expected rewards API v2 response with a data array");
+            throw new IllegalArgumentException("Expected rewards API response with a campaigns array");
         }
 
         List<RewardCampaign> campaigns = new ArrayList<>();
